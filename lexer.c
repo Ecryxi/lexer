@@ -1,6 +1,7 @@
 #include <immintrin.h>
 #include <x86intrin.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "token.h"
 #include "lex_error.h"
@@ -26,8 +27,8 @@ __mmask64 get_strng_mask(__m512i chunk);
 
 void lex(const char* src) {
     __m512i chunk;
-    __mmask64 digits, idents, spaces;
-    __mmask64 masks[5];
+    __mmask64 digits, idents, spaces, strngs;
+    __mmask64 masks[6];
 
     src -= 64;
 reload:
@@ -36,6 +37,7 @@ reload:
     masks[Identifier]     = idents = get_ident_mask(chunk);
     masks[IntegerLiteral] = digits = get_digit_mask(chunk);
     masks[Whitespace]     = spaces = get_space_mask(chunk);
+    masks[StringLiteral]  = strngs = get_strng_mask(chunk);
     
     for (size_t i = 0; i < 64;) {
         switch (CHARS[src[i]]) {
@@ -52,12 +54,13 @@ reload:
                 token_new_and_emit(CHARS[src[i]], src, &i, span_until(mask, i));
                 break;
                 
-            
-            /* TODO: --- REMOVE TEMPORARILY FOR SIMPLICITY
+                
             case StringLiteral:
-                tok = lex_string(src);
+                if (__builtin_expect(!has_any_break_after(strngs, ++i), 0)) goto reload;
+                token_new_and_emit(StringLiteral, src, &i, span_until(strngs, i));
+                i++; // Skip last `"`
                 break;
-            */
+            
             
             default:
                 token_new_and_emit(Other, src, &i, 1);

@@ -18,6 +18,9 @@ void token_new_and_emit(TokenType type, const char* src, size_t *i, size_t span)
 bool has_any_break_after(__mmask64 mask, size_t index);
 size_t span_until(__mmask64 mask, size_t index);
 
+// Mask factory
+__mmask64 get_digit_mask(__m512i chunk);
+
 void lex(const char* src) {
     for (size_t i = 0; i < 64;) {
         Token tok;
@@ -65,6 +68,13 @@ void lex(const char* src) {
         emit_token(tok);
     }
 
+}
+
+__mmask64 get_digit_mask(__m512i chunk) {
+    const __m512i ASCII0 = _mm512_set1_epi8('0');
+    const __m512i NUMBER9 = _mm512_set1_epi8(9);
+    const __m512i numchunk = _mm512_sub_epi8(chunk, ASCII0);
+    return _mm512_cmpgt_epu8_mask(numchunk, NUMBER9);
 }
 
 size_t span_until(__mmask64 mask, size_t i) {

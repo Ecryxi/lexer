@@ -83,26 +83,6 @@ void token_new_and_emit(TokenType type, const char* src, size_t *i, size_t span)
 }
 
 
-Token lex_number(const char* src) {
-    const __m512i ASCII0 = _mm512_set1_epi8('0');
-    const __m512i NUMBER9 = _mm512_set1_epi8(9);
-    Token tok = { .type = IntegerLiteral, .lexeme = src, .length = 0 };
-    
-    for (;; src += 64, tok.length += 64) {
-        const __mmask64 digits = ({
-            const __m512i chunk = _mm512_loadu_epi8(src);
-            const __m512i numchunk = _mm512_sub_epi8(chunk, ASCII0);
-            _mm512_cmpgt_epu8_mask(numchunk, NUMBER9);
-        });
-        
-        if (__builtin_expect(!digits, 0)) continue;
-        
-        tok.length += _tzcnt_u64(digits);
-        return tok;
-    }
-    __builtin_unreachable();
-}
-
 Token lex_ident(const char* src) {
     const __m512i TO_UPPER   = _mm512_set1_epi8(~32);
     const __m512i UNDERSCORE = _mm512_set1_epi8('_');

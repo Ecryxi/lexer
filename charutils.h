@@ -142,25 +142,27 @@ const TokenType CHARS[128] = {
 };
 
 static inline bool is_digit(const char c) {
-    return (unsigned) (c - '0') <= 9;
+    return CHARS[c] == IntegerLiteral;
 }
 
+// TODO: remove
 static inline bool is_alpha(const char c) {
     return (unsigned) ((c | 0x20) - 'a') <= 25;
 }
 
+// TODO: remove
 static inline bool is_alnum(const char c) {
     return is_digit(c) || is_alpha(c);
 }
 
 static inline bool is_ident_start(const char c) {
-    return (c == '_') || is_alpha(c);
+    return CHARS[c] == Identifier;
 }
 
 static inline bool is_ident(const char c) {
-    return (c == '_') || is_alpha(c) || is_digit(c);
+    return is_ident_start(c) || is_digit(c);
 }
 
 static inline bool is_space(const char c) {
-    return (unsigned) (c - 1) <= ' '; // Space and below, except NUL, are considered whitespaces
+    return CHARS[c] == Whitespace;
 }

@@ -26,12 +26,15 @@ __mmask64 get_space_mask(__m512i chunk);
 void lex(const char* src) {
     __m512i chunk;
     __mmask64 digits, idents, spaces;
+    __mmask64 masks[5];
 
     src -= 64;
 reload:
     chunk     = _mm512_loadu_si512(src += 64);
-    idents    = get_ident_mask(chunk);
-    digits    = get_digit_mask(chunk);
+
+    masks[Identifier]     = idents = get_ident_mask(chunk);
+    masks[IntegerLiteral] = digits = get_digit_mask(chunk);
+    masks[Whitespace]     = spaces = get_space_mask(chunk);
     
     for (size_t i = 0; i < 64;) {
         switch (CHARS[src[i]]) {
@@ -42,14 +45,12 @@ reload:
                 continue;
 
             case Identifier:
-                if (__builtin_expect(!has_any_break_after(idents, i), 0)) goto reload;
-                token_new_and_emit(Identifier, src, &i, span_until(idents, i));
+            case IntegerLiteral:
+                const __mmask64 mask = masks[CHARS[src[i]]];
+                if (__builtin_expect(!has_any_break_after(mask, i), 0)) goto reload;
+                token_new_and_emit(CHARS[src[i]], src, &i, span_until(mask, i));
                 break;
                 
-            case IntegerLiteral:
-                if (__builtin_expect(!has_any_break_after(digits, i), 0)) goto reload;
-                token_new_and_emit(IntegerLiteral, src, &i, span_until(digits, i));
-                break;
             
             /* TODO: --- REMOVE TEMPORARILY FOR SIMPLICITY
             case StringLiteral:

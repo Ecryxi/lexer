@@ -5,7 +5,7 @@ typedef enum TokenType : uint8_t {
     Null,
     Whitespace,
     Identifier,
-
+    Other
 
 } TokenType;
 

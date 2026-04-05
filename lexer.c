@@ -33,7 +33,17 @@ void lex(const char* src) {
                 continue;
 
             case Identifier:
-                tok = lex_ident(src);
+                tok = (Token) { .type = Identifier, .lexeme = src, .length = 0 };
+
+                for (;; src += 64, tok.length += 64) {
+                    const __m512i chunk = _mm512_loadu_epi8(src);
+                    const __mmask64 idents = get_ident_mask(chunk);
+            
+                    if (__builtin_expect(!idents, 0)) continue;
+            
+                    tok.length += _tzcnt_u64(idents);
+                    break;
+                }
                 break;
             
             case IntegerLiteral:
@@ -100,23 +110,6 @@ void token_new_and_emit(TokenType type, const char* src, size_t *i, size_t span)
     tok.lexeme = src + *i;
     *i += tok.length = span;
     emit_token(tok);
-}
-
-
-Token lex_ident(const char* src) {
-    Token tok = { .type = Identifier, .lexeme = src, .length = 0 };
-
-    for (;; src += 64, tok.length += 64) {
-        const __m512i chunk = _mm512_loadu_epi8(src);
-        const __mmask64 idents = get_ident_mask(chunk);
-
-        if (__builtin_expect(!idents, 0)) continue;
-
-        tok.length += _tzcnt_u64(idents);
-        return tok;
-    }
-
-    __builtin_unreachable();
 }
 
 Token lex_string(const char* src) {

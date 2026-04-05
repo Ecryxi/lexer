@@ -13,3 +13,7 @@ inline bool is_alpha(const uint8_t uc) {
 inline bool is_alnum(const uint8_t uc) {
     return is_digit(uc) || is_alpha(uc);
 }
+
+inline bool is_ident(const uint8_t uc) {
+    return (uc == '_') || is_alpha(uc);
+}

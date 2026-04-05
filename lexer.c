@@ -14,6 +14,8 @@ Token lex_number(const char* src);
 Token lex_ident(const char* src);
 Token lex_string(const char* src);
 
+void token_new_and_emit(TokenType type, const char* src, size_t *i, size_t span);
+
 void lex(const char* src) {
     for (size_t i = 0; i < 64;) {
         Token tok;
@@ -47,6 +49,14 @@ void lex(const char* src) {
     }
 
 }
+
+void token_new_and_emit(TokenType type, const char* src, size_t *i, size_t span){
+    Token tok = { .type = type };
+    tok.lexeme = src + *i;
+    *i += tok.length = span;
+    emit_token(tok);
+}
+
 
 Token lex_number(const char* src) {
     const __m512i ASCII0 = _mm512_set1_epi8('0');

@@ -20,3 +20,7 @@ inline bool is_ident_start(const uint8_t uc) {
 inline bool is_ident(const uint8_t uc) {
     return (uc == '_') || is_alpha(uc) || is_digit(uc);
 }
+
+static inline bool is_space(const char c) {
+    return (unsigned) (c - 1) <= ' '; // Space and below, except NUL, are considered whitespaces
+}

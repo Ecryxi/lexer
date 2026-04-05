@@ -54,7 +54,7 @@ Token lex_number(const char* src) {
     const __m512i NUMBER9 = _mm512_set1_epi8(9);
     Token tok = { .type = IntegerLiteral, .lexeme = src, .length = 0 };
     
-    for (;; src += 64) {
+    for (;; src += 64, tok.length += 64) {
         const __mmask64 digits = ({
             const __m512i chunk = _mm512_loadu_epi8(src);
             const __m512i numchunk = _mm512_sub_epi8(chunk, ASCII0);

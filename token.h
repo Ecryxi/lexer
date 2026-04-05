@@ -5,8 +5,12 @@ typedef enum TokenType : uint8_t {
     Null,
     Whitespace,
     Identifier,
-    Other
 
+    IntegerLiteral,
+    FloatLiteral,
+    StringLiteral,
+
+    Other
 } TokenType;
 
 typedef struct Token {

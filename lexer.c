@@ -15,7 +15,8 @@ Token lex_ident(const char* src);
 Token lex_string(const char* src);
 
 void lex(const char* src) {
-    for (; *src; ) {
+    for (;;) {
+        if (!*src) return;
         if (is_space(*src)) {
             src++;
             continue;

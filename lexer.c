@@ -36,16 +36,11 @@ void lex(const char* src) {
                 break;
             
             case IntegerLiteral:
-                const __m512i ASCII0 = _mm512_set1_epi8('0');
-                const __m512i NUMBER9 = _mm512_set1_epi8(9);
                 tok = (Token) { .type = IntegerLiteral, .lexeme = src, .length = 0 };
                 
                 for (;; src += 64, tok.length += 64) {
-                    const __mmask64 digits = ({
-                        const __m512i chunk = _mm512_loadu_epi8(src);
-                        const __m512i numchunk = _mm512_sub_epi8(chunk, ASCII0);
-                        _mm512_cmpgt_epu8_mask(numchunk, NUMBER9);
-                    });
+                    const __m512i chunk = _mm512_loadu_epi8(src);
+                    const __mmask64 digits = get_digit_mask(chunk);
                     
                     if (__builtin_expect(!digits, 0)) continue;
                     

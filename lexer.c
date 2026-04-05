@@ -23,6 +23,13 @@ __mmask64 get_digit_mask(__m512i chunk);
 __mmask64 get_ident_mask(__m512i chunk);
 
 void lex(const char* src) {
+    __m512i chunk;
+    __mmask64 digits, idents;
+
+    src -= 64;
+reload:
+    chunk     = _mm512_loadu_si512(src += 64);
+
     for (size_t i = 0; i < 64;) {
         Token tok;
         switch (CHARS[*src]) {
@@ -73,6 +80,7 @@ void lex(const char* src) {
         src += tok.length;
         emit_token(tok);
     }
+    goto reload;
 
 }
 

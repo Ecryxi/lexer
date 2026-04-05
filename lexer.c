@@ -1,4 +1,5 @@
-#include <stdio.h>
+#include <immintrin.h>
+#include <x86intrin.h>
 #include <string.h>
 
 #include "token.h"
@@ -60,14 +61,30 @@ Token lex_number(const char* src) {
 }
 
 Token lex_ident(const char* src) {
-    const char* ptr = src;
-    for (; is_ident(*ptr); ptr++);
+    const __m512i TO_UPPER   = _mm512_set1_epi8(~32);
+    const __m512i UNDERSCORE = _mm512_set1_epi8('_');
+    
+    const __m512i ASCII_A    = _mm512_set1_epi8('A');
+    const __m512i POSITION_Z = _mm512_set1_epi8(25); // 25th letter in the alphabet
+    Token tok = { .type = Identifier, .lexeme = src, .length = 0 };
 
-    return (Token) {
-        .type = Identifier,
-        .lexeme = src,
-        .length = ptr - src
-    };
+    for (;; src += 64, tok.length += 64) {
+        const __mmask64 idents = ({
+            const __m512i chunk = _mm512_loadu_epi8(src);
+            const __m512i upper = _mm512_and_si512(chunk, TO_UPPER);
+            const __m512i letterpos = _mm512_sub_epi8(upper, ASCII_A);
+            const __mmask64 letters = _mm512_cmpgt_epu8_mask(letterpos, POSITION_Z);
+
+            letters & _mm512_cmpneq_epu8_mask(chunk, UNDERSCORE);
+        });
+
+        if (__builtin_expect(!idents, 0)) continue;
+
+        tok.length += _tzcnt_u64(idents);
+        return tok;
+    }
+
+    __builtin_unreachable();
 }
 
 Token lex_string(const char* src) {

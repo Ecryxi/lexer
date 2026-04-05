@@ -30,57 +30,36 @@ void lex(const char* src) {
     src -= 64;
 reload:
     chunk     = _mm512_loadu_si512(src += 64);
+    idents    = get_ident_mask(chunk);
+    digits    = get_digit_mask(chunk);
     
-
     for (size_t i = 0; i < 64;) {
-        Token tok;
-        switch (CHARS[*src]) {
+        switch (CHARS[src[i]]) {
             case Null: return;
 
             case Whitespace:
-                src++;
+                i++;
                 continue;
 
             case Identifier:
-                tok = (Token) { .type = Identifier, .lexeme = src, .length = 0 };
-
-                for (;; src += 64, tok.length += 64) {
-                    const __m512i chunk = _mm512_loadu_epi8(src);
-                    const __mmask64 idents = get_ident_mask(chunk);
-            
-                    if (__builtin_expect(!idents, 0)) continue;
-            
-                    tok.length += _tzcnt_u64(idents);
-                    break;
-                }
+                if (__builtin_expect(!has_any_break_after(idents, i), 0)) goto reload;
+                token_new_and_emit(Identifier, src, &i, span_until(idents, i));
                 break;
-            
-            case IntegerLiteral:
-                tok = (Token) { .type = IntegerLiteral, .lexeme = src, .length = 0 };
                 
-                for (;; src += 64, tok.length += 64) {
-                    const __m512i chunk = _mm512_loadu_epi8(src);
-                    const __mmask64 digits = get_digit_mask(chunk);
-                    
-                    if (__builtin_expect(!digits, 0)) continue;
-                    
-                    tok.length += _tzcnt_u64(digits);
-                    break;
-                }
+            case IntegerLiteral:
+                if (__builtin_expect(!has_any_break_after(digits, i), 0)) goto reload;
+                token_new_and_emit(IntegerLiteral, src, &i, span_until(digits, i));
                 break;
             
+            /* TODO: --- REMOVE TEMPORARILY FOR SIMPLICITY
             case StringLiteral:
                 tok = lex_string(src);
                 break;
+            */
             
             default:
-                tok.type = Other;
-                tok.lexeme = src;
-                tok.length = 1;
+                token_new_and_emit(Other, src, &i, 1);
         }
-        
-        src += tok.length;
-        emit_token(tok);
     }
     goto reload;
 

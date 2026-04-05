@@ -16,6 +16,7 @@ Token lex_string(const char* src);
 
 void token_new_and_emit(TokenType type, const char* src, size_t *i, size_t span);
 bool has_any_break_after(__mmask64 mask, size_t index);
+size_t span_until(__mmask64 mask, size_t index);
 
 void lex(const char* src) {
     for (size_t i = 0; i < 64;) {
@@ -50,6 +51,11 @@ void lex(const char* src) {
     }
 
 }
+
+size_t span_until(__mmask64 mask, size_t i) {
+    return _tzcnt_u64(mask >> i);
+}
+
 bool has_any_break_after(__mmask64 mask, size_t i) {
     return mask >> i;
 }

@@ -20,6 +20,7 @@ size_t span_until(__mmask64 mask, size_t index);
 
 // Mask factory
 __mmask64 get_digit_mask(__m512i chunk);
+__mmask64 get_ident_mask(__m512i chunk);
 
 void lex(const char* src) {
     for (size_t i = 0; i < 64;) {
@@ -70,6 +71,20 @@ __mmask64 get_digit_mask(__m512i chunk) {
     const __m512i NUMBER9 = _mm512_set1_epi8(9);
     const __m512i numchunk = _mm512_sub_epi8(chunk, ASCII0);
     return _mm512_cmpgt_epu8_mask(numchunk, NUMBER9);
+}
+
+__mmask64 get_ident_mask(__m512i chunk) {
+    const __m512i TO_UPPER   = _mm512_set1_epi8(~32);
+    const __m512i UNDERSCORE = _mm512_set1_epi8('_');
+    
+    const __m512i ASCII_A    = _mm512_set1_epi8('A');
+    const __m512i POSITION_Z = _mm512_set1_epi8(25); // 25th letter in the alphabet
+
+    const __m512i upper = _mm512_and_si512(chunk, TO_UPPER);
+    const __m512i letterpos = _mm512_sub_epi8(upper, ASCII_A);
+    const __mmask64 letters = _mm512_cmpgt_epu8_mask(letterpos, POSITION_Z);
+
+    return letters & _mm512_cmpneq_epu8_mask(chunk, UNDERSCORE);
 }
 
 size_t span_until(__mmask64 mask, size_t i) {

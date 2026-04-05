@@ -66,6 +66,7 @@ Token lex_number(const char* src) {
         tok.length += _tzcnt_u64(digits);
         return tok;
     }
+    __builtin_unreachable();
 }
 
 Token lex_ident(const char* src) {

@@ -20,3 +20,7 @@ static inline bool is_ident_start(const char c) {
 static inline bool is_ident(const char c) {
     return (c == '_') || is_alpha(c) || is_digit(c);
 }
+
+static inline bool is_space(const char c) {
+    return (unsigned) (c - 1) <= ' '; // Space and below, except NUL, are considered whitespaces
+}

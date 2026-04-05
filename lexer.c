@@ -22,6 +22,7 @@ size_t span_until(__mmask64 mask, size_t index);
 __mmask64 get_digit_mask(__m512i chunk);
 __mmask64 get_ident_mask(__m512i chunk);
 __mmask64 get_space_mask(__m512i chunk);
+__mmask64 get_strng_mask(__m512i chunk);
 
 void lex(const char* src) {
     __m512i chunk;
@@ -64,6 +65,11 @@ reload:
     }
     goto reload;
 
+}
+
+__mmask64 get_strng_mask(__m512i chunk) {
+    const __m512i dblq = _mm512_set1_epi8('"');
+    return _mm512_cmpeq_epu8_mask(chunk, dblq);
 }
 
 __mmask64 get_space_mask(__m512i chunk) {

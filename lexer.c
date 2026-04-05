@@ -16,33 +16,32 @@ Token lex_string(const char* src);
 
 void lex(const char* src) {
     for (size_t i = 0; i < 64;) {
-        if (!*src) return;
-        if (is_space(*src)) {
-            src++;
-            continue;
-        }
-
         Token tok;
-        if (is_ident_start(*src)) {
-            tok = lex_ident(src);
-            goto add_token;
-        }
+        switch (CHARS[*src]) {
+            case Null: return;
 
-        if (is_digit(*src)) {
-            tok = lex_number(src);
-            goto add_token;
+            case Whitespace:
+                src++;
+                continue;
+
+            case Identifier:
+                tok = lex_ident(src);
+                break;
+            
+            case IntegerLiteral:
+                tok = lex_number(src);
+                break;
+            
+            case StringLiteral:
+                tok = lex_string(src);
+                break;
+            
+            default:
+                tok.type = Other;
+                tok.lexeme = src;
+                tok.length = 1;
         }
         
-        if (*src == '"') {
-            tok = lex_string(src);
-            goto add_token;   
-        }
-
-        tok.type = Other;
-        tok.lexeme = src;
-        tok.length = 1;
-
-    add_token:
         src += tok.length;
         emit_token(tok);
     }

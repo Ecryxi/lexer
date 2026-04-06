@@ -42,12 +42,12 @@ reload:
     for (size_t i = 0; i < 64;) {
         const char type = CHARS[src[i]];
         if (__builtin_expect(type == Null, 0)) return;
-        
-        switch (type) {
-            case Whitespace:
-                i++;
-                continue;
+        if (type == Whitespace) {
+            i++;
+            continue;
+        }
 
+        switch (type) {
             case Identifier:
             case StringLiteral:
             case IntegerLiteral:

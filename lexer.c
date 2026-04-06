@@ -40,9 +40,10 @@ reload:
     masks[StringLiteral]  = strngs = get_strng_mask(chunk);
     
     for (size_t i = 0; i < 64;) {
-        switch (CHARS[src[i]]) {
-            case Null: return;
-
+        const char type = CHARS[src[i]];
+        if (__builtin_expect(type == Null, 0)) return;
+        
+        switch (type) {
             case Whitespace:
                 i++;
                 continue;
@@ -51,10 +52,10 @@ reload:
             case StringLiteral:
             case IntegerLiteral:
                 bool is_delimiter = src[i] == '"';
-                const __mmask64 mask = masks[CHARS[src[i]]];
+                const __mmask64 mask = masks[type];
                 i += is_delimiter;
                 if (__builtin_expect(!has_any_break_after(mask, i), 0)) goto reload;
-                token_new_and_emit(CHARS[src[i]], src, &i, span_until(mask, i));
+                token_new_and_emit(type, src, &i, span_until(mask, i));
                 i += is_delimiter;
                 break;
             

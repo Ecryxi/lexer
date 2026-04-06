@@ -48,19 +48,15 @@ reload:
                 continue;
 
             case Identifier:
+            case StringLiteral:
             case IntegerLiteral:
+                bool is_delimiter = src[i] == '"';
                 const __mmask64 mask = masks[CHARS[src[i]]];
+                i += is_delimiter;
                 if (__builtin_expect(!has_any_break_after(mask, i), 0)) goto reload;
                 token_new_and_emit(CHARS[src[i]], src, &i, span_until(mask, i));
+                i += is_delimiter;
                 break;
-                
-                
-            case StringLiteral:
-                if (__builtin_expect(!has_any_break_after(strngs, ++i), 0)) goto reload;
-                token_new_and_emit(StringLiteral, src, &i, span_until(strngs, i));
-                i++; // Skip last `"`
-                break;
-            
             
             default:
                 token_new_and_emit(Other, src, &i, 1);
